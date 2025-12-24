@@ -1,0 +1,62 @@
+# JARVIS Systemd Service File (Linux)
+# 
+# Installation:
+#   1. Copy this file to /etc/systemd/system/jarvis.service
+#   2. Edit the paths and user below
+#   3. Run: sudo systemctl daemon-reload
+#   4. Run: sudo systemctl enable jarvis
+#   5. Run: sudo systemctl start jarvis
+#
+# Commands:
+#   sudo systemctl status jarvis    - Check status
+#   sudo systemctl start jarvis     - Start service
+#   sudo systemctl stop jarvis      - Stop service
+#   sudo systemctl restart jarvis   - Restart service
+#   journalctl -u jarvis -f         - View logs
+
+[Unit]
+Description=JARVIS AI Assistant
+Documentation=https://github.com/yourusername/jarvis
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+# Change these to match your setup
+User=your_username
+Group=your_username
+WorkingDirectory=/home/your_username/jarvis
+
+# Environment
+Environment="PATH=/home/your_username/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=/home/your_username/jarvis/.env
+
+# Command to run
+ExecStart=/home/your_username/.local/bin/python run.py
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+# Resource limits
+MemoryMax=2G
+CPUQuota=80%
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/your_username/jarvis/data
+PrivateTmp=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=jarvis
+
+[Install]
+WantedBy=multi-user.target

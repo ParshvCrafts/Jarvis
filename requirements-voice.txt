@@ -1,0 +1,30 @@
+# =============================================================================
+# JARVIS Voice Dependencies
+# Required for voice interaction features
+# Install: pip install -r requirements-voice.txt
+# =============================================================================
+
+# Include core dependencies
+-r requirements-core.txt
+
+# Audio Processing
+numpy>=1.24.0
+scipy>=1.11.0
+sounddevice>=0.4.6
+soundfile>=0.12.1
+
+# Speech-to-Text
+faster-whisper>=1.0.0
+
+# Text-to-Speech
+edge-tts>=6.1.9
+
+# Voice Activity Detection (pure Python, no compilation needed)
+silero-vad>=5.1
+
+# Wake Word Detection
+openwakeword>=0.6.0
+
+# PyTorch (CPU version - no CUDA required)
+torch>=2.0.0
+torchaudio>=2.0.0

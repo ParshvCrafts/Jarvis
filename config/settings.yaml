@@ -1,0 +1,1152 @@
+# =============================================================================
+# JARVIS Configuration File
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# General Settings
+# -----------------------------------------------------------------------------
+general:
+  name: "JARVIS"
+  version: "1.0.0"
+  debug: false
+  log_level: "INFO"
+  data_dir: "data"
+  models_dir: "models"
+
+# -----------------------------------------------------------------------------
+# Authentication Settings
+# -----------------------------------------------------------------------------
+auth:
+  # Master switch - set to false to skip all authentication
+  enabled: false
+  # Require authentication on startup (if enabled)
+  require_on_startup: false
+  # Session timeout in seconds (30 minutes default)
+  session_timeout: 1800
+  # Maximum failed authentication attempts before lockout
+  max_failed_attempts: 3
+  # Lockout duration in seconds (5 minutes)
+  lockout_duration: 300
+  
+  face_recognition:
+    enabled: true
+    # Tolerance for face matching (lower = stricter, 0.4-0.6 recommended)
+    tolerance: 0.5
+    # Number of face encodings to store per user
+    num_jitters: 1
+    # Model: "hog" (faster, CPU) or "cnn" (more accurate, GPU)
+    model: "hog"
+    
+  liveness_detection:
+    enabled: true
+    # Blink detection threshold
+    ear_threshold: 0.25
+    # Consecutive frames for blink detection
+    consec_frames: 3
+    # Head movement detection
+    head_movement_enabled: true
+    # Timeout for liveness check in seconds
+    timeout: 10
+    
+  voice_verification:
+    enabled: true
+    # Similarity threshold (0.0-1.0, higher = stricter)
+    similarity_threshold: 0.75
+    # Minimum audio duration for verification (seconds)
+    min_audio_duration: 1.5
+    # Sample rate for voice verification
+    sample_rate: 16000
+
+  # Command authorization levels
+  authorization_levels:
+    low: ["query", "search", "weather", "time", "reminder"]
+    medium: ["app_control", "file_operations", "browser", "email"]
+    high: ["door_unlock", "system_settings", "delete_files", "iot_control"]
+
+# -----------------------------------------------------------------------------
+# LLM Configuration (Intelligent Router)
+# -----------------------------------------------------------------------------
+llm:
+  # Enable intelligent routing based on task type
+  intelligent_routing: true
+  
+  # Response caching
+  cache:
+    enabled: true
+    max_age_hours: 24
+    max_entries: 10000
+  
+  # Provider configurations (in priority order)
+  providers:
+    # Groq - Primary for speed (300+ tokens/sec, 14,400 req/day free)
+    groq:
+      enabled: true
+      model: "llama-3.3-70b-versatile"
+      temperature: 0.7
+      max_tokens: 4096
+      timeout: 30
+      rate_limit:
+        requests_per_day: 14400
+        tokens_per_minute: 100000
+    
+    # Gemini - Complex reasoning (1M tokens/min, 1,500 req/day free)
+    gemini:
+      enabled: true
+      model: "gemini-2.5-flash"
+      temperature: 0.7
+      max_tokens: 8192
+      timeout: 60
+      rate_limit:
+        requests_per_day: 1500
+        tokens_per_minute: 1000000
+    
+    # Mistral - Coding tasks (1B tokens/month free)
+    mistral:
+      enabled: true
+      model: "codestral-latest"
+      temperature: 0.7
+      max_tokens: 4096
+      timeout: 60
+      rate_limit:
+        tokens_per_month: 1000000000
+    
+    # OpenRouter - Emergency fallback (30+ free models)
+    openrouter:
+      enabled: true
+      model: "meta-llama/llama-3.2-3b-instruct:free"
+      temperature: 0.7
+      max_tokens: 4096
+      timeout: 60
+    
+    # Anthropic - Premium fallback
+    anthropic:
+      enabled: true
+      model: "claude-3-5-sonnet-20241022"
+      temperature: 0.7
+      max_tokens: 4096
+      timeout: 60
+    
+    # Ollama - Offline capability
+    ollama:
+      enabled: true
+      model: "llama3.2"
+      base_url: "http://localhost:11434"
+      temperature: 0.7
+      max_tokens: 4096
+      timeout: 120
+  
+  # Task-based routing preferences
+  routing:
+    fast_query: ["groq", "gemini", "mistral", "openrouter", "ollama"]
+    complex_reasoning: ["gemini", "anthropic", "groq", "mistral", "ollama"]
+    coding: ["mistral", "anthropic", "groq", "gemini", "ollama"]
+    creative: ["anthropic", "gemini", "groq", "mistral", "ollama"]
+    conversation: ["groq", "gemini", "mistral", "ollama", "openrouter"]
+  
+  # Fallback behavior
+  fallback:
+    enabled: true
+    max_retries: 3
+    base_backoff: 1.0
+    max_backoff: 60.0
+
+# -----------------------------------------------------------------------------
+# Voice Pipeline Configuration
+# -----------------------------------------------------------------------------
+voice:
+  wake_word:
+    enabled: true
+    # Wake word phrase
+    phrase: "hey jarvis"
+    # Detection threshold (0.0-1.0)
+    threshold: 0.5
+    # Model path (leave empty for default)
+    model_path: ""
+    
+  speech_to_text:
+    # Engine: "faster_whisper" or "whisper"
+    engine: "faster_whisper"
+    # Model: use "base" (not "base.en") for multilingual support
+    model: "base"
+    # Device: "cuda" or "cpu"
+    device: "cpu"
+    # Compute type: "float16", "int8", "float32"
+    compute_type: "int8"
+    # Language: "auto" for auto-detection, or specific code (en, hi, gu)
+    language: "auto"
+    # Multilingual settings
+    multilingual:
+      enabled: true
+      auto_detect: true
+      # Supported languages: English, Hindi, Gujarati
+      supported_languages: ["en", "hi", "gu"]
+    
+  voice_activity_detection:
+    enabled: true
+    # Threshold for speech detection (0.0-1.0)
+    threshold: 0.5
+    # Minimum speech duration (seconds)
+    min_speech_duration: 0.25
+    # Silence duration to end recording (seconds)
+    silence_duration: 1.0
+    
+  text_to_speech:
+    # Engine: "edge_tts", "piper", "kokoro"
+    engine: "edge_tts"
+    # Default voice for Edge TTS
+    voice: "en-IN-PrabhatNeural"
+    # Speech rate (0.5-2.0)
+    rate: 1.0
+    # Volume (0.0-1.0)
+    volume: 1.0
+    # Multilingual voice settings
+    multilingual:
+      enabled: true
+      # Default language
+      default_language: "en"
+      # Preferred gender: "male" or "female"
+      preferred_gender: "male"
+      # Voice mapping by language
+      voices:
+        en:
+          male: "en-IN-PrabhatNeural"
+          female: "en-IN-NeerjaNeural"
+        hi:
+          male: "hi-IN-MadhurNeural"
+          female: "hi-IN-SwaraNeural"
+        gu:
+          male: "gu-IN-NiranjanNeural"
+          female: "gu-IN-DhwaniNeural"
+    
+  audio:
+    # Sample rate
+    sample_rate: 16000
+    # Channels
+    channels: 1
+    # Chunk size for streaming
+    chunk_size: 1024
+    # Input device index (null for default)
+    input_device: null
+    # Output device index (null for default)
+    output_device: null
+
+# -----------------------------------------------------------------------------
+# Memory Configuration
+# -----------------------------------------------------------------------------
+memory:
+  conversation:
+    # Maximum messages in short-term memory
+    max_messages: 20
+    # Sliding window size
+    window_size: 10
+    
+  vector_store:
+    # Provider: "chromadb" or "lancedb"
+    provider: "chromadb"
+    # Collection name
+    collection_name: "jarvis_memory"
+    # Embedding model
+    embedding_model: "all-MiniLM-L6-v2"
+    # Maximum results for similarity search
+    max_results: 5
+    
+  episodic:
+    # SQLite database path
+    db_path: "data/episodic.db"
+    # Enable memory consolidation
+    consolidation_enabled: true
+    # Consolidation interval (hours)
+    consolidation_interval: 24
+
+# -----------------------------------------------------------------------------
+# Quick Launch Configuration
+# -----------------------------------------------------------------------------
+quick_launch:
+  # Enable quick launch system
+  enabled: true
+  # Database path (can share with episodic or use separate)
+  db_path: "data/quick_launch.db"
+  
+  applications:
+    # Enable application registry
+    enabled: true
+    # Auto-discover installed applications
+    auto_discover: false
+    # Scan directories for auto-discovery (Windows)
+    scan_directories:
+      - "C:\\Program Files"
+      - "C:\\Program Files (x86)"
+      - "%LOCALAPPDATA%\\Programs"
+  
+  bookmarks:
+    # Enable web bookmarks
+    enabled: true
+    # Default browser (null = system default)
+    default_browser: null
+  
+  youtube:
+    # Enable YouTube search/play
+    enabled: true
+    # Auto-play first result
+    auto_play: false
+    # Use Playwright for auto-click (requires playwright)
+    use_playwright: false
+  
+  learning:
+    # Track usage for suggestions
+    track_usage: true
+    # Suggest frequently used items
+    suggest_frequent: true
+
+# -----------------------------------------------------------------------------
+# Communication Configuration
+# -----------------------------------------------------------------------------
+communication:
+  # Contacts Management
+  contacts:
+    enabled: true
+    db_path: "data/contacts.db"
+    # Default country code for phone numbers (US = +1, India = +91)
+    default_country_code: "+1"
+  
+  # WhatsApp Automation
+  whatsapp:
+    enabled: true
+    # If true, auto-click send button (requires Playwright)
+    auto_send: false
+    # Use web.whatsapp.com instead of wa.me
+    use_web_whatsapp: true
+    # Require confirmation before sending messages
+    confirm_before_send: true
+  
+  # Keyboard Shortcut Activation
+  hotkey:
+    enabled: true
+    # Key combination (win+j, ctrl+shift+j, cmd+j, etc.)
+    key_combination: "win+j"
+    # Play sound on activation
+    play_sound: true
+
+# -----------------------------------------------------------------------------
+# Agent Configuration
+# -----------------------------------------------------------------------------
+agents:
+  supervisor:
+    enabled: true
+    # Maximum iterations for task completion
+    max_iterations: 10
+    
+  research:
+    enabled: true
+    # Maximum search results
+    max_results: 5
+    # Search timeout (seconds)
+    timeout: 30
+    
+  coding:
+    enabled: true
+    # Code execution timeout (seconds)
+    execution_timeout: 30
+    # Sandbox enabled
+    sandbox: true
+    
+  system:
+    enabled: true
+    # Allowed applications
+    allowed_apps: ["notepad", "calculator", "browser", "vscode", "terminal"]
+    
+  iot:
+    enabled: true
+    # Device discovery timeout (seconds)
+    discovery_timeout: 10
+    
+  communication:
+    enabled: true
+    # Email provider
+    email_provider: "gmail"
+
+# -----------------------------------------------------------------------------
+# IoT Configuration
+# -----------------------------------------------------------------------------
+iot:
+  # Enable mDNS discovery
+  mdns_enabled: true
+  # Service type for discovery
+  service_type: "_jarvis._tcp.local."
+  # Heartbeat interval (seconds)
+  heartbeat_interval: 30
+  # Command timeout (seconds)
+  command_timeout: 10
+  
+  devices:
+    light_switch:
+      enabled: false
+      # Device hostname (discovered via mDNS)
+      hostname: "jarvis-light.local"
+      port: 80
+      # Servo positions
+      servo_on_position: 90
+      servo_off_position: 0
+      
+    door_lock:
+      enabled: false
+      hostname: "jarvis-door.local"
+      port: 80
+      # Servo positions
+      servo_unlock_position: 90
+      servo_lock_position: 0
+      # Auto-release timeout (ms)
+      auto_release_timeout: 3000
+      # Authorization level required
+      auth_level: "high"
+
+# -----------------------------------------------------------------------------
+# Telegram Bot Configuration
+# -----------------------------------------------------------------------------
+telegram:
+  enabled: false
+  # Allowed user IDs (for security)
+  allowed_users: []
+  # Enable voice notes
+  voice_notes_enabled: true
+  # Enable location tracking
+  location_tracking: false
+
+# -----------------------------------------------------------------------------
+# Proactive Features
+# -----------------------------------------------------------------------------
+proactive:
+  enabled: true
+  # Calendar integration
+  calendar_enabled: false
+  # Weather alerts
+  weather_enabled: true
+  # Location: city name or coordinates
+  location: "Berkeley, CA"
+  # Learning enabled
+  learning_enabled: true
+
+# -----------------------------------------------------------------------------
+# System Control
+# -----------------------------------------------------------------------------
+system:
+  # Screenshot capture
+  screenshot_enabled: true
+  # Clipboard access
+  clipboard_enabled: true
+  # File operations
+  file_operations_enabled: true
+  # Allowed directories for file operations
+  allowed_directories:
+    - "~/Documents"
+    - "~/Downloads"
+    - "~/Desktop"
+  # Browser automation
+  browser_automation_enabled: true
+  # Default browser
+  default_browser: "chrome"
+
+# -----------------------------------------------------------------------------
+# Performance Optimization (Phase 5)
+# -----------------------------------------------------------------------------
+performance:
+  # Streaming responses
+  streaming:
+    enabled: true
+    # Minimum sentence length for TTS chunking
+    min_sentence_length: 10
+    # Maximum sentences to buffer
+    max_buffer_sentences: 5
+  
+  # Parallel processing
+  parallel:
+    enabled: true
+    # Maximum concurrent tasks
+    max_tasks: 5
+    # Thread pool size for CPU-bound operations
+    thread_pool_size: 4
+  
+  # Resource monitoring
+  resources:
+    # Maximum memory usage (MB) before warning
+    max_memory_mb: 1024
+    # Memory threshold for garbage collection (MB)
+    gc_threshold_mb: 512
+    # Idle GC interval (seconds)
+    idle_gc_interval: 300
+  
+  # Connection pooling
+  connections:
+    pool_size: 10
+    timeout: 30
+    keepalive_timeout: 60
+
+# -----------------------------------------------------------------------------
+# Intelligent Caching (Phase 5)
+# -----------------------------------------------------------------------------
+cache:
+  enabled: true
+  
+  # Level 1: In-memory LRU cache
+  memory:
+    size: 100
+    default_ttl: 3600  # 1 hour
+  
+  # Level 2: SQLite persistent cache
+  sqlite:
+    enabled: true
+    max_entries: 10000
+    cleanup_interval: 3600
+  
+  # Level 3: Semantic similarity cache
+  semantic:
+    enabled: true
+    # Similarity threshold (0.0-1.0, higher = stricter matching)
+    threshold: 0.92
+    # Embedding model for similarity
+    model: "all-MiniLM-L6-v2"
+    cache_size: 1000
+  
+  # Response templates for instant responses
+  templates:
+    enabled: true
+  
+  # Category-specific TTL (seconds)
+  ttl:
+    static: 604800      # 7 days (definitions, how-tos)
+    weather: 1800       # 30 minutes
+    news: 3600          # 1 hour
+    iot: 300            # 5 minutes
+    calendar: 900       # 15 minutes
+    general: 3600       # 1 hour
+    conversation: 1800  # 30 minutes
+
+# -----------------------------------------------------------------------------
+# Tools Configuration (Phase 7)
+# -----------------------------------------------------------------------------
+tools:
+  # Weather tool (Open-Meteo - FREE, no API key needed)
+  weather:
+    enabled: true
+    cache_ttl: 1800  # 30 minutes
+    temperature_unit: "celsius"  # or "celsius"
+    wind_speed_unit: "mph"  # or "kmh"
+    
+  # Calendar tool (Google Calendar - FREE)
+  calendar:
+    enabled: true  # Enable when credentials are configured
+    credentials_file: "config/google_credentials.json"
+    
+  # Email tool (Gmail API - FREE)
+  email:
+    enabled: true  # Enable when credentials are configured
+    max_results: 10
+    require_confirmation: true  # Require confirmation before sending
+    
+  # Smart Home tools
+  smart_home:
+    mqtt:
+      enabled: false
+      broker: "localhost"
+      port: 1883
+      username: ""
+      password: ""
+    home_assistant:
+      enabled: false
+      url: "http://homeassistant.local:8123"
+      token: ""
+      
+  # RAG/Document tools
+  rag:
+    enabled: false  # Enable when vector store is configured
+    chunk_size: 500
+    chunk_overlap: 50
+    top_k: 5
+    
+  # Learning & Personalization
+  learning:
+    enabled: true
+    history_days: 30
+    track_preferences: true
+
+# -----------------------------------------------------------------------------
+# Audio Settings
+# -----------------------------------------------------------------------------
+audio:
+  # Startup sound when JARVIS initializes
+  startup_sound:
+    enabled: true
+    file: "assets/audio/startup.wav"
+    volume: 0.7
+  
+  # Notification sounds
+  notifications:
+    enabled: true
+    ready: "assets/audio/ready.wav"
+    success: "assets/audio/success.wav"
+    error: "assets/audio/error.wav"
+    volume: 0.5
+
+# -----------------------------------------------------------------------------
+# Academic Features (UC Berkeley Data Science Student)
+# -----------------------------------------------------------------------------
+academic:
+  enabled: true
+  university: "UC Berkeley"
+  
+  # Canvas LMS Integration (bCourses)
+  canvas:
+    enabled: true
+    # UC Berkeley Canvas URL
+    base_url: "https://bcourses.berkeley.edu/api/v1/"
+    # Token stored in .env as CANVAS_API_TOKEN
+    # Cache duration for course data (minutes)
+    cache_duration: 30
+    
+  # Pomodoro Study Timer
+  pomodoro:
+    work_duration: 25  # minutes
+    short_break: 5
+    long_break: 15
+    sessions_before_long_break: 4
+    # Play sound at end of session
+    sound_enabled: true
+    
+  # Daily Briefing
+  briefing:
+    morning_time: "08:00"
+    include_weather: true
+    include_calendar: true
+    include_assignments: true
+    include_emails: true
+    include_quote: true
+    
+  # GitHub Integration
+  github:
+    enabled: true
+    # Token stored in .env as GITHUB_TOKEN
+    
+  # Google Drive Quick Access
+  google_drive:
+    enabled: true  # Enable when credentials configured
+    credentials_file: "config/google_credentials.json"
+    
+  # arXiv Paper Search
+  arxiv:
+    enabled: true
+    # Default categories for ML/AI papers
+    default_categories: ["cs.LG", "cs.AI", "stat.ML", "cs.CL", "cs.CV"]
+    
+  # Deadline Alerts
+  alerts:
+    enabled: true
+    # Hours before due date to alert
+    alert_hours: [48, 24, 2]
+    # Check interval (minutes)
+    check_interval: 60
+
+# -----------------------------------------------------------------------------
+# Productivity Features (Phase 2)
+# -----------------------------------------------------------------------------
+productivity:
+  # Music Control (YouTube Music preferred)
+  music:
+    enabled: true
+    preferred_service: "youtube_music"  # or "spotify"
+    auto_play_on_pomodoro: true
+    playlists:
+      # Custom playlists
+      english_songs:
+        youtube: "https://music.youtube.com/playlist?list=PLuPLryw1MZSeDk8w6PzdoGaIT8ynyORaX"
+      hindi_songs:
+        youtube: "https://music.youtube.com/playlist?list=PLuPLryw1MZSc9vtfCZIbOpdfHdVTJ9X-H"
+      gym:
+        youtube: "https://music.youtube.com/playlist?list=PLuPLryw1MZSecFNQrHTyzv0gkkzmhAUFo"
+      
+  # Learning Journal
+  learning_journal:
+    enabled: true
+    daily_prompt: true
+    prompt_time: "21:00"  # 9 PM reminder to log learning
+    
+  # Habit Tracker
+  habits:
+    enabled: true
+    add_defaults: true  # Add default student habits on first run
+    daily_reminder: true
+    reminder_time: "22:00"  # 10 PM habit check-in
+    
+  # Project Tracker
+  projects:
+    enabled: true
+    
+  # Code Snippets
+  snippets:
+    enabled: true
+    load_defaults: true  # Load pre-configured DS/ML snippets
+    
+  # Study Planner
+  study_planner:
+    enabled: true
+    default_study_hours: 4  # Default daily study goal
+    peak_hours: [[9, 12], [14, 17]]  # Peak productivity hours
+    
+  # Weekly Review
+  weekly_review:
+    enabled: true
+    day: "sunday"
+    time: "18:00"  # 6 PM Sunday
+    
+  # Focus Mode
+  focus_mode:
+    enabled: true
+    blocked_sites:
+      - twitter.com
+      - x.com
+      - facebook.com
+      - instagram.com
+      - reddit.com
+      - tiktok.com
+      - netflix.com
+      - twitch.tv
+    # Educational sites are always whitelisted
+    
+  # Break Reminders
+  breaks:
+    enabled: true
+    work_duration: 50  # Minutes before break reminder
+    short_break: 5
+    long_break: 15
+    long_break_interval: 4  # Long break after every N sessions
+    
+  # Dataset Explorer
+  dataset_explorer:
+    enabled: true
+    search_paths:
+      - "data"
+      - "datasets"
+      - "~/Downloads"
+
+# -----------------------------------------------------------------------------
+# Career & Advanced Intelligence (Phase 3)
+# -----------------------------------------------------------------------------
+career:
+  # Interview Prep Mode
+  interview_prep:
+    enabled: true
+    default_difficulty: "medium"  # easy, medium, hard
+    daily_question: true
+    
+  # Resume/Experience Tracker
+  resume:
+    enabled: true
+    name: "Parshv Patel"  # Your name for resume header
+    university: "UC Berkeley"
+    major: "Data Science"
+    graduation: "2029"
+    
+  # Job Application Tracker
+  applications:
+    enabled: true
+    reminder_days: 3  # Days before deadline to remind
+    
+  # Networking Tracker
+  networking:
+    enabled: true
+    follow_up_days: 14  # Remind to follow up after N days
+
+# Finance Management
+finance:
+  expense_tracker:
+    enabled: true
+    currency: "USD"
+    monthly_budget: 1000
+    categories:
+      - Food & Dining
+      - Transportation
+      - Books & Supplies
+      - Entertainment
+      - Subscriptions
+      - Personal
+      - Misc
+    budget_threshold: 80  # Alert at 80% spent
+  
+  # Investment & Financial Advisor
+  investment:
+    enabled: true
+    default_watchlist:
+      - VTI   # Vanguard Total Stock Market
+      - VOO   # Vanguard S&P 500
+      - VXUS  # Vanguard International
+      - FNILX # Fidelity ZERO Large Cap (0% fee)
+      - FZROX # Fidelity ZERO Total Market (0% fee)
+      - BND   # Vanguard Total Bond
+    
+  savings_rates:
+    # High-yield savings account rates (update periodically)
+    last_updated: "2024-12-01"
+    accounts:
+      - name: "SoFi"
+        apy: 4.30
+      - name: "Wealthfront"
+        apy: 4.50
+      - name: "Marcus"
+        apy: 4.20
+      - name: "Ally"
+        apy: 4.20
+      - name: "Discover"
+        apy: 4.10
+        
+  advice:
+    risk_tolerance: "moderate"
+    time_horizon: "long"  # 30+ years for young investor
+    
+  portfolio:
+    enabled: true
+    target_allocation:
+      us_stocks: 70
+      international_stocks: 20
+      bonds: 10
+
+# Notion Integration
+notion:
+  enabled: true
+  integration_type: "api"  # "url" for basic, "api" for full integration
+  # api_key stored in .env as NOTION_API_KEY
+  pages: []
+    # Example:
+    # - name: "Class Notes"
+    #   url: "https://notion.so/..."
+
+# Personal Knowledge Base
+knowledge_base:
+  enabled: true
+  index_learning_journal: true
+  index_notes: true
+  index_projects: true
+
+# Voice Journal
+voice_journal:
+  enabled: true
+  daily_prompt: true
+
+# Learning Paths
+learning_paths:
+  enabled: true
+  # Pre-defined paths available:
+  # - machine_learning
+  # - deep_learning
+  # - nlp
+  # - computer_vision
+  # - data_engineering
+  # - mlops
+
+# -----------------------------------------------------------------------------
+# Advanced Research & Paper Writing (Phase 6)
+# -----------------------------------------------------------------------------
+research:
+  enabled: true
+  
+  # Academic API Configuration
+  apis:
+    semantic_scholar:
+      enabled: true
+      rate_limit: 100  # per 5 minutes
+      
+    openalex:
+      enabled: true
+      email: "p1a2r3s4h5v6@gmail.com"  # Add your email for polite pool (higher rate limits)
+      
+    arxiv:
+      enabled: true
+      
+    crossref:
+      enabled: true
+      
+    core:
+      enabled: true  # Requires API key (CORE_API_KEY in .env)
+  
+  # Default Settings
+  defaults:
+    citation_style: "mla"  # apa, mla, chicago, ieee
+    min_sources: 8
+    max_sources: 15
+    prefer_recent: true
+    recent_years: 5
+  
+  # Google Docs Integration
+  google_docs:
+    enabled: true
+    # Uses existing Google credentials from config/google_credentials.json
+    # Token stored in config/google_token.json
+  
+  # Writing Settings
+  writing:
+    academic_tone: true
+    include_abstract: true
+    double_spaced: true
+    font_family: "Times New Roman"
+    font_size: 12
+
+# -----------------------------------------------------------------------------
+# Scholarship Automation (Phase 6)
+# -----------------------------------------------------------------------------
+scholarship:
+  enabled: true
+  
+  # User Profile for Eligibility Matching
+  profile:
+    name: "Parshv"
+    age: 18
+    ethnicity: "Asian Indian"
+    citizenship: "permanent_resident"
+    major: "Data Science"
+    field: "stem"
+    education_level: "undergraduate"
+    year: "Freshman"
+    university: "UC Berkeley"
+    gpa: 4.0
+    state: "California"
+    gender: "male"
+    first_generation: true
+    financial_need: true
+  
+  # Discovery Settings
+  discovery:
+    match_threshold: 0.80  # Minimum eligibility match (0-1)
+    max_results: 50
+    sources:
+      - scholarships.com
+      - bold.org
+      - fastweb
+      - going_merry
+  
+  # RAG Settings
+  rag:
+    use_local_fallback: true
+    num_similar_essays: 5
+    num_statement_sections: 3
+    prefer_winning_essays: true
+  
+  # Essay Generation
+  generation:
+    primary_llm: "groq"
+    fallback_llm: "gemini"
+    auto_adjust_words: true
+    max_attempts: 3
+    word_tolerance: 5
+  
+  # Google Docs Output
+  google_docs:
+    enabled: true
+    # Uses existing Google credentials from config/google_credentials.json
+
+# -----------------------------------------------------------------------------
+# Internship Automation Module
+# -----------------------------------------------------------------------------
+internship:
+  enabled: true
+  
+  # User Profile
+  profile:
+    name: "Parshv"
+    email: ""
+    phone: ""
+    linkedin: ""
+    github: ""
+    university: "UC Berkeley"
+    major: "Data Science"
+    year: "Freshman"
+    gpa: 4.0
+    graduation_year: 2028
+    target_roles:
+      - "Data Science Intern"
+      - "ML Intern"
+      - "Software Engineering Intern"
+      - "AI Research Intern"
+    preferred_location: "remote"
+    willing_to_relocate: true
+    target_companies:
+      - "Google"
+      - "Meta"
+      - "Amazon"
+      - "Microsoft"
+      - "Apple"
+    primary_skills:
+      - "Python"
+      - "SQL"
+      - "Machine Learning"
+      - "Data Analysis"
+      - "pandas"
+      - "NumPy"
+      - "sklearn"
+  
+  # Search Settings
+  search:
+    sources:
+      - "remoteok"
+      - "themuse"
+      - "tavily"
+      - "serper"
+    max_results_per_source: 50
+    posted_within_days: 30
+  
+  # Resume Settings
+  resume:
+    ats_optimization: true
+    target_ats_score: 85
+    max_projects: 4
+    max_experience: 3
+    output_formats:
+      - "pdf"
+      - "docx"
+      - "markdown"
+  
+  # Cover Letter Settings
+  cover_letter:
+    target_word_count: 350
+    min_word_count: 280
+    max_word_count: 420
+    include_company_research: true
+    include_personal_story: true
+  
+  # Application Tracking
+  tracking:
+    follow_up_days: 7
+    auto_track: true
+  
+  # Output Paths
+  paths:
+    db_path: "data/internship_applications.db"
+    resume_rag_path: "data/resume_rag"
+    output_directory: "data/generated_documents"
+
+# -----------------------------------------------------------------------------
+# Performance Dashboard (Phase 5)
+# -----------------------------------------------------------------------------
+dashboard:
+  enabled: true
+  host: "127.0.0.1"
+  port: 8080
+  # Update interval for real-time metrics (seconds)
+  update_interval: 2.0
+  # Maximum metrics history
+  max_history: 100
+  # Alert thresholds
+  alerts:
+    latency_threshold_ms: 5000
+    memory_threshold_percent: 80
+    cache_hit_threshold: 0.5
+
+# -----------------------------------------------------------------------------
+# Travel Module (Phase 4)
+# -----------------------------------------------------------------------------
+travel:
+  enabled: true
+  
+  # Home location
+  home_airport: "SFO"
+  home_city: "San Francisco, CA"
+  
+  # Preferences
+  preferred_airlines:
+    - "Southwest"
+    - "United"
+  budget_preference: "moderate"  # budget, moderate, luxury
+  
+  # API Keys (store in .env)
+  # AMADEUS_CLIENT_ID, AMADEUS_CLIENT_SECRET
+  # GOOGLE_PLACES_API_KEY
+  # WEATHER_API_KEY
+  
+  # Paths
+  db_path: "data/travel.db"
+
+# -----------------------------------------------------------------------------
+# Health & Wellness Module (Phase 4)
+# -----------------------------------------------------------------------------
+health:
+  enabled: true
+  
+  # Goals
+  goals:
+    sleep_hours: 7
+    water_glasses: 8
+    workout_days_per_week: 4
+    daily_steps: 10000
+  
+  # Reminders
+  reminders:
+    water: true
+    stretch: true
+    sleep: true
+  
+  # Campus
+  campus_gym: "RSF"
+  
+  # Paths
+  db_path: "data/health.db"
+
+# -----------------------------------------------------------------------------
+# Smart News Module (Phase 4)
+# -----------------------------------------------------------------------------
+news:
+  enabled: true
+  
+  # Interest topics (ranked by importance)
+  interests:
+    - "Artificial Intelligence"
+    - "Machine Learning"
+    - "Data Science"
+    - "Python"
+    - "UC Berkeley"
+    - "Tech Companies"
+  
+  # Sources
+  sources:
+    newsapi: true
+    hackernews: true
+    reddit: true
+    devto: true
+  
+  # Reddit subreddits
+  subreddits:
+    - "MachineLearning"
+    - "datascience"
+    - "Python"
+    - "programming"
+    - "berkeley"
+  
+  # Digest settings
+  digest_day: "sunday"
+  max_articles: 20
+  
+  # Paths
+  db_path: "data/news.db"
+
+# -----------------------------------------------------------------------------
+# Communication Hub (Phase 4)
+# -----------------------------------------------------------------------------
+communication:
+  enabled: true
+  
+  # User info for templates
+  user_name: "Parshv"
+  user_university: "UC Berkeley"
+  user_major: "Data Science"
+  user_year: "Freshman"
+  
+  # Email settings
+  email_signature: |
+    Best,
+    Parshv
+  
+  # Meeting settings
+  meeting_duration_default: 30
+  meeting_buffer_minutes: 15
+  
+  # LinkedIn
+  linkedin_reminder: true
+  
+  # Paths
+  db_path: "data/communication.db"

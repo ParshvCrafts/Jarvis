@@ -1,0 +1,39 @@
+# =============================================================================
+# JARVIS Windows Dependencies
+# Use this on Windows instead of requirements-full.txt
+# Install: pip install -r requirements-windows.txt
+# =============================================================================
+
+# Include full dependencies (which already excludes problematic packages)
+-r requirements-full.txt
+
+# -----------------------------------------------------------------------------
+# Windows-specific notes:
+# -----------------------------------------------------------------------------
+# The following packages are EXCLUDED because they require C++ compilation:
+#
+# 1. webrtcvad - Voice Activity Detection
+#    ALTERNATIVE: silero-vad (already included, pure Python)
+#
+# 2. dlib - Face detection/recognition library
+#    ALTERNATIVE: opencv-python haar cascades (already included)
+#
+# 3. face-recognition - High-level face recognition
+#    ALTERNATIVE: opencv-python face detection (basic but works)
+#
+# 4. pyaudio - Audio I/O
+#    ALTERNATIVE: sounddevice (already included, uses pre-built portaudio)
+#
+# 5. mediapipe - Google's ML solutions
+#    STATUS: Often fails on Windows, features work without it
+#
+# -----------------------------------------------------------------------------
+# If you NEED these packages and have Visual Studio Build Tools installed:
+# -----------------------------------------------------------------------------
+# 1. Install Visual Studio Build Tools 2019 or later
+# 2. Install CMake and add to PATH
+# 3. Then try: pip install webrtcvad dlib face-recognition
+#
+# For pyaudio on Windows, you can try:
+#    pip install pipwin
+#    pipwin install pyaudio

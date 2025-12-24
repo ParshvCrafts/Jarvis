@@ -1,0 +1,27 @@
+# =============================================================================
+# JARVIS - Advanced Personal AI Assistant
+# Requirements File - Python 3.10+
+# =============================================================================
+#
+# INSTALLATION OPTIONS:
+#
+# 1. MINIMAL (text mode only):
+#    pip install -r requirements-core.txt
+#
+# 2. WITH API (mobile app support):
+#    pip install -r requirements-api.txt
+#
+# 3. WITH VOICE (voice interaction):
+#    pip install -r requirements-voice.txt
+#
+# 4. FULL (all features, Linux/macOS):
+#    pip install -r requirements-full.txt
+#
+# 5. WINDOWS (all features, avoids compilation issues):
+#    pip install -r requirements-windows.txt
+#
+# This file installs CORE dependencies only for maximum compatibility.
+# =============================================================================
+
+# Include core dependencies (minimum to run text mode)
+-r requirements-core.txt

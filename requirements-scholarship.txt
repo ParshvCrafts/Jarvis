@@ -1,0 +1,26 @@
+# Scholarship Module Dependencies
+# Install with: pip install -r requirements-scholarship.txt
+
+# Database - Supabase with vector support
+supabase>=2.0.0
+
+# Local vector database fallback
+chromadb>=0.4.0
+
+# Embedding generation (local)
+sentence-transformers>=2.2.0
+
+# Embedding generation (cloud fallback)
+cohere>=4.0.0
+
+# Scholarship discovery
+tavily-python>=0.3.0
+
+# Document parsing
+python-docx>=0.8.11
+PyPDF2>=3.0.0
+
+# Google Docs integration (optional, for formatted output)
+google-api-python-client>=2.0.0
+google-auth-httplib2>=0.1.0
+google-auth-oauthlib>=0.4.0
